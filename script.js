@@ -1,49 +1,67 @@
 const display = document.querySelector(".display");
 const options = document.querySelectorAll(".options");
-let result = null;
-let number = 0;
-let operator = "+";
-let firstTouch = true;
+let result;
+let number;
+let operator;
+let firstTouch;
+let operatorPressed;
 start();
 
 function start() {
     clear();
+    options.forEach((option) => option.onclick = (e) => evaluate(e));
+    window.addEventListener("keydown", evaluate);
+}
 
-    options.forEach((option) => option.onclick = (e) => {
-        // console.log(e.srcElement.innerHTML);
-        if(result === null) {
-            display.textContent = "";
-            result = 0;
-        }
-        if(e.srcElement.innerHTML === "C") {
+function evaluate(e) {
+    let clickedSymbol = null;
+    if(e.type === "click") {
+        clickedSymbol = e.srcElement.innerHTML;      
+    } else if (e.type === "keydown") {
+        clickedSymbol = e.key;
+    } else {
+        // clickedSymbol = "CE";
+    }
+    if(result === null) {
+        display.textContent = "";
+        result = 0;
+    }
+    if(clickedSymbol.toLowerCase() === "c" || clickedSymbol == "Delete") {
             clear();
-        } else if (e.srcElement.innerHTML === "CE") {
-            clearEntry();
-        } else if (isOperator(e.srcElement.innerHTML)) {
-            if(operator !== "=") {
-                number = Number(display.textContent);
-            }            
-            if(e.srcElement.innerHTML !== "=") {
-                operator = e.srcElement.innerHTML;
-            }
+    } else if (clickedSymbol === "CE" || clickedSymbol == "Backspace") {
+        clearEntry();
+    } else if (isOperator(clickedSymbol)) {
+        if(operator !== "=") {
+            number = Number(display.textContent);
+        }         
+        if(operator !== "=") {
             if(firstTouch) {
                 result = number;
             } else {
                 result = operate(result,operator,number);
             }
-            display.textContent = result;
-            if(e.srcElement.innerHTML === "=") {
-                operator = e.srcElement.innerHTML;
-                number = 0;
-            }
-            if(operator !== "=") {
-                display.textContent = "";  
-            firstTouch = false;
-            }
-        } else {
-            display.textContent += e.srcElement.innerHTML;
         }
-    });
+        if(clickedSymbol !== "=") {
+            operator = clickedSymbol;
+        }
+        display.textContent = result;
+        if(clickedSymbol === "=") {
+            operator = clickedSymbol;
+            number = 0;
+        }
+        firstTouch = false;
+        operatorPressed = true;
+    } else if (clickedSymbol === ".") {
+        if(!display.textContent.includes(".")) {
+            display.textContent += clickedSymbol;  
+        }
+    } else if (!isNaN(Number (clickedSymbol))) { 
+        if(operatorPressed && operator !== "=") {
+            display.textContent = "";
+        }
+        display.textContent += clickedSymbol;
+        operatorPressed = false;
+    }
 }
 
 function operate(NumberOne, operand, NumberTwo) {
@@ -112,11 +130,12 @@ function divide(numbers) {
 }
 
 function clear() {
-    display.textContent = "";
+    display.textContent = "0";
     result = null;
     number = 0;
     operator = "+";
     firstTouch = true;
+    operatorPressed = true;
 }
 
 function clearEntry() {
@@ -129,6 +148,9 @@ function clearEntry() {
         text.pop();
     }
     display.textContent = text.join("");
+    // if(display.textContent === "") {
+    //     display.textContent = 0;
+    // }
 }
 
 function isOperator(symbol) {
